@@ -17,7 +17,7 @@ export default function Login() {
   // State khusus untuk Register (Data Profil)
   const [nama, setNama] = useState('');
   const [nim, setNim] = useState('');
-  const [unitKerja, setUnitKerja] = useState('PT. Pelindo Terminal Petikemas TPK Bitung');
+  const [unitKerja, setUnitKerja] = useState('');
   const [jurusan, setJurusan] = useState('');
   const [prodi, setProdi] = useState('');
   const [pembimbing, setPembimbing] = useState('');
