@@ -8,23 +8,22 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isLogin = pathname === '/login';
 
   return (
-    // Tambahkan flex dan flex-col agar kita bisa mendorong footer ke bawah
     <div className={`flex-1 w-full min-h-screen flex flex-col bg-slate-50 ${!isLogin ? 'md:ml-64' : ''}`}>
       
-      {/* Konten utama akan mengambil seluruh sisa ruang di atas */}
+      {/* Konten utama */}
       <div className="flex-1">
         {children}
       </div>
 
-      {/* Footer Utama (Sengaja disembunyikan di halaman Login agar desain form tetap rapi) */}
+      {/* Footer Utama (Posisi Teks di Tengah) */}
       {!isLogin && (
-        <footer className="w-full border-t border-slate-200 bg-white py-5 mt-auto">
-          <div className="max-w-6xl mx-auto px-6 md:px-8 flex flex-col md:flex-row justify-between items-center gap-2 text-sm text-slate-500 font-medium">
+        <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto">
+          <div className="flex flex-col items-center justify-center text-center gap-1 text-sm text-slate-500 font-medium">
             <p>
-              &copy; {new Date().getFullYear()} WIL. All rights reserved.
+              &copy; {new Date().getFullYear()} WiL. All rights reserved.
             </p>
-            <p className="flex items-center gap-1.5">
-              Developed for <span className="text-blue-600 font-bold">All Of You</span>
+            <p className="flex items-center gap-1.5 justify-center">
+              Developed for <span className="text-blue-600 font-bold">All Off You</span>
             </p>
           </div>
         </footer>
