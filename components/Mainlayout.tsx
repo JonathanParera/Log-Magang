@@ -8,14 +8,15 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const isLogin = pathname === '/login';
 
   return (
-    <div className={`flex-1 w-full min-h-screen flex flex-col bg-slate-50 ${!isLogin ? 'md:ml-64' : ''}`}>
+    // Tambahan pt-16 (Padding Top) khusus untuk HP agar tidak menabrak Top Bar Menu
+    <div className={`flex-1 w-full min-h-screen flex flex-col bg-slate-50 ${!isLogin ? 'md:ml-64 pt-16 md:pt-0' : ''}`}>
       
       {/* Konten utama */}
       <div className="flex-1">
         {children}
       </div>
 
-      {/* Footer Utama (Posisi Teks di Tengah) */}
+      {/* Footer Utama */}
       {!isLogin && (
         <footer className="w-full border-t border-slate-200 bg-white py-6 mt-auto">
           <div className="flex flex-col items-center justify-center text-center gap-1 text-sm text-slate-500 font-medium">
