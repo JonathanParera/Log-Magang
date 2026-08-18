@@ -33,7 +33,7 @@ export default function Sidebar() {
           <div className="bg-blue-500 p-1.5 rounded-lg">
             <FileSignature size={20} className="text-white" />
           </div>
-          <span>My Intership</span>
+          <span>My Internship</span>
         </div>
         <button onClick={() => setIsOpen(true)} className="p-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition">
           <Menu size={24} />
@@ -58,7 +58,7 @@ export default function Sidebar() {
               <FileSignature size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-lg tracking-wide">My Intership</h1>
+              <h1 className="font-bold text-lg tracking-wide">My Internship</h1>
               <p className="text-xs text-slate-400">Log Magang</p>
             </div>
           </div>
