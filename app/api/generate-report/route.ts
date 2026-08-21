@@ -12,7 +12,6 @@ import ImageModule from 'docxtemplater-image-module-free';
 
 export async function GET(request: Request) {
   try {
-    // 1. Ambil ID User dari URL
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -20,13 +19,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'User ID tidak ditemukan' }, { status: 400 });
     }
 
-    // 2. Inisialisasi Supabase
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // 3. Tarik Data Profil User
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
@@ -35,7 +32,6 @@ export async function GET(request: Request) {
 
     if (profileError) throw profileError;
 
-    // 4. Tarik data Log HANYA milik user ini
     const { data: logs, error: logsError } = await supabase
       .from('daily_logs')
       .select('*')
@@ -57,7 +53,8 @@ export async function GET(request: Request) {
         jam_datang: log.jam_datang ? log.jam_datang.substring(0, 5) : '-',
         jam_pulang: log.jam_pulang ? log.jam_pulang.substring(0, 5) : '-',
         kegiatan: log.kegiatan,
-        foto: log.foto_url || '' 
+        // RAHASIA KESUKSESAN: Jangan pernah beri string kosong "" ke mesin Word
+        foto: log.foto_url && log.foto_url !== '' ? log.foto_url : 'TIDAK_ADA_FOTO'
       };
     }) || [];
 
@@ -69,15 +66,28 @@ export async function GET(request: Request) {
     const imageOptions = {
       centered: false,
       getImage: function (tagValue: string) {
-        return new Promise((resolve, reject) => {
-          if (!tagValue) return resolve(Buffer.from(''));
+        return new Promise((resolve) => {
+          const blankImg = Buffer.from(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+            "base64"
+          );
+
+          // Jika teksnya 'TIDAK_ADA_FOTO', langsung berikan gambar transparan (tanpa memicu error)
+          if (tagValue === 'TIDAK_ADA_FOTO') {
+            return resolve(blankImg);
+          }
+
+          // Jika itu benar-benar link URL, biarkan Next.js mendownloadnya
           fetch(tagValue)
-            .then((res) => res.arrayBuffer())
+            .then((res) => {
+              if (!res.ok) throw new Error("Link mati");
+              return res.arrayBuffer();
+            })
             .then((buffer) => resolve(Buffer.from(buffer)))
-            .catch(reject);
+            .catch(() => resolve(blankImg));
         });
       },
-      getSize: function () {
+      getSize: function (img: any, tagValue: string, tagName: string) {
         return [150, 110]; // Ukuran foto (px)
       },
     };
@@ -89,7 +99,19 @@ export async function GET(request: Request) {
       linebreaks: true,
     });
 
-    // 7. SUNTIKKAN DATA PROFIL & LOG KE WORD
+    // Menentukan bulan laporan otomatis 
+    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    let teksBulanLaporan = "";
+    
+    if (logs && logs.length > 0) {
+      const tanggalLog = new Date(logs[0].tanggal);
+      teksBulanLaporan = `${namaBulan[tanggalLog.getMonth()]} ${tanggalLog.getFullYear()}`;
+    } else {
+      const tanggalSekarang = new Date();
+      teksBulanLaporan = `${namaBulan[tanggalSekarang.getMonth()]} ${tanggalSekarang.getFullYear()}`;
+    }
+
+    // 7. SUNTIKKAN DATA ASINKRON (Karena kita menggunakan trik 'TIDAK_ADA_FOTO', ini bebas error!)
     await doc.resolveData({
       nama: profile.nama,
       nim: profile.nim,
@@ -97,23 +119,23 @@ export async function GET(request: Request) {
       jurusan: profile.jurusan,
       program_studi: profile.program_studi,
       pembimbing_lapangan: profile.pembimbing_lapangan,
-      bulan_laporan: "Agustus 2026", // Kamu bisa ubah ini otomatis nanti jika mau
+      bulan_laporan: teksBulanLaporan, 
       logs: formattedLogs
     });
     
     doc.render();
 
-    // 8. Jadikan file biner (Menggunakan uint8array sesuai perbaikan sebelumnya)
+    // 8. Jadikan file biner
     const buf = doc.getZip().generate({
       type: 'uint8array',
       compression: 'DEFLATE',
     });
 
-    // 9. Kirim file (Menggunakan as any sesuai perbaikan sebelumnya)
+    // 9. Kirim file
     return new NextResponse(buf as any, {
       headers: {
         'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'Content-Disposition': `attachment; filename="Laporan_Magang_${profile.nama}.docx"`, // Nama file otomatis pakai nama user!
+        'Content-Disposition': `attachment; filename="Laporan_Magang_${profile.nama}.docx"`, 
       },
     });
 
